@@ -219,6 +219,9 @@ class DBTaskRunner(object):
                  verbose_name=None, creator=None,
                  repeat=None, repeat_until=None, remove_existing_tasks=False):
         '''Simply create a task object in the database'''
+        if app_settings.BACKGROUND_TASK_QUEUE_NAME_REQUIRED and not queue:
+            raise RuntimeError("The required field queue was not provided")
+
         task = Task.objects.new_task(task_name, args, kwargs, run_at, priority,
                                      queue, verbose_name, creator, repeat,
                                      repeat_until, remove_existing_tasks)

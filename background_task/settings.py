@@ -58,4 +58,9 @@ class AppSettings(object):
             prefix = '-'
         return prefix
 
+    @property
+    def BACKGROUND_TASK_QUEUE_NAME_REQUIRED(self):
+        """Enforce that every Task should belong to a queue when calling the decorator."""
+        return getattr(settings, 'BACKGROUND_TASK_QUEUE_NAME_REQUIRED', False)
+
 app_settings = AppSettings()

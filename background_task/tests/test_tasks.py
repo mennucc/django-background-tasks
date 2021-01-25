@@ -295,6 +295,39 @@ class TestSchedulingTasks(TransactionTestCase):
         self.failUnless(now - timedelta(seconds=1) < task.run_at)
         self.failUnless(now + timedelta(seconds=1) > task.run_at)
 
+    def test_schedule_queue_name_required_false(self):
+        with self.settings(BACKGROUND_TASK_QUEUE_NAME_REQUIRED=False):
+            @tasks.background(name='test_background_gets_scheduled_when_queue_not_required')
+            def noop(result):
+                pass
+
+            noop(1)
+
+            task = Task.objects.all().first()
+            self.assertEqual('test_background_gets_scheduled_when_queue_not_required', task.task_name)
+
+
+    def test_schedule_queue_name_required_true_passes(self):
+        with self.settings(BACKGROUND_TASK_QUEUE_NAME_REQUIRED=True):
+            @tasks.background(name='test_background_gets_scheduled_when_queue_required_and_supplied', queue='queue1')
+            def noop(result):
+                pass
+
+            noop(1)
+
+            task = Task.objects.all().first()
+            self.assertEqual('test_background_gets_scheduled_when_queue_required_and_supplied', task.task_name)
+            self.assertEqual('queue1', task.queue)
+
+    def test_schedule_queue_name_required_true_fails(self):
+        with self.settings(BACKGROUND_TASK_QUEUE_NAME_REQUIRED=True):
+            @tasks.background(name='test_background_doesnt_get_scheduled_when_queue_is_required_and_missing')
+            def noop(result):
+                pass
+
+            with self.assertRaisesMessage(RuntimeError, 'The required field queue was not provided'):
+                noop(1)
+
 
 class TestTaskRunner(TransactionTestCase):
 
